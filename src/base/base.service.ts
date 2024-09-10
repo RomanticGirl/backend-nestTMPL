@@ -47,9 +47,9 @@ export class BaseService {
         };
     }
 
-    getWhere(query: QueryFindOptions): string {
+    getWhere(query: QueryFindOptions): QueryFindOptions {
         // console.error('Метод должен быть override');
-        return 'id > 1';
+        return query;
     }
 
     getOrder(): FindOptionsOrder<any> {
@@ -122,7 +122,6 @@ export class BaseServiceCRUD extends BaseService {
 
 
         const items: any[] = await queryBuilder
-            .groupBy(`"${schema}.${tableName}".id`)
             .where(where)
             .skip(skip)
             .take(take)
@@ -130,7 +129,7 @@ export class BaseServiceCRUD extends BaseService {
 
         const { count } = await this.dataSource
             .createQueryBuilder()
-            .select(`COUNT(id)`)
+            .select(`count(*)`)
             .from(`${schema}.${tableName}`, null)
             .where(where)
             .getRawOne();
