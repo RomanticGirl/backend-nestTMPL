@@ -1,0 +1,69 @@
+.build-compose:
+  when: always
+  script:
+    - cp $ENV ./.env
+    - docker-compose build
+    - rm .env
+
+
+
+
+.compose-up:
+  when: always
+  script:
+    - export COMPOSE_HTTP_TIMEOUT=300
+    - COMPOSE_HTTP_TIMEOUT=600 docker-compose   down
+    - cp $ENV .env
+    - COMPOSE_HTTP_TIMEOUT=900  docker-compose   up -d
+
+
+
+DEV-BUILD-IAC:
+  environment:
+    name: IAC
+  extends:
+    - .build-compose
+  tags:
+    - astra2
+  except:
+    - develop
+
+DEV-RUN-IAC:
+  extends:
+    - .compose-up
+  tags:
+    - astra2
+  needs:
+    - job: DEV-BUILD-IAC
+      artifacts: false
+  except:
+    - develop
+
+
+DEV-BUILD-TEST:
+  environment:
+    name: TEST
+  extends:
+    - .build-compose
+  tags:
+    - web1
+  only:
+    - develop
+    - release
+    - master
+
+
+DEV-RUN-TEST:
+  environment:
+    name: TEST
+  extends:
+    - .compose-up
+  tags:
+    - web1
+  only:
+    - develop
+    - release
+    - master
+  needs:
+    - job: DEV-BUILD-TEST
+      artifacts: false
